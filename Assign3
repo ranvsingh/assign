@@ -1,50 +1,59 @@
-import pdb
-from mininet.topo import Topo
-
-class Assign3( Topo ):
-
-	def __init__( self ):
-               # initialize topology		
-		Topo.__init__( self )
-		
-		S1 = self.addSwitch( 's1' )
-		S2 = self.addSwitch( 's2' )
-		S3 = self.addSwitch( 's3' )
-		S4 = self.addSwitch( 's4' )
-		S5 = self.addSwitch( 's5' )
-		H1 = self.addHost( 'h1' )
-		H2 = self.addHost( 'h2' )
-		H3 = self.addHost( 'h3' )
-		H4 = self.addHost( 'h4' )
-		H5 = self.addHost( 'h5' )
-		H6 = self.addHost( 'h6' )
-		H7 = self.addHost( 'h7' )
-		H8 = self.addHost( 'h8' )
-		H9 = self.addHost( 'h9' )
-		H10 = self.addHost( 'h10' )
+#!/usr/bin/python
 
 
-		SwitchList = (S1,S2,S3,S4,S5)
-		#for index in range( 0, len(SwitchList)):
-		 #    for index2 in range( index+1,len(SwitchList)):
-	#	self.addLink(SwitchList[index],SwitchList[index2])
-		self.addLink(S1,S2)
-		self.addLink(S1,S5)
-		self.addLink(S2,S3)
-		self.addLink(S3,S4)
-		self.addLink(S4,S5)
+from mininet.net import Mininet
+from mininet.log import setLogLevel, info
+from mininet.cli import CLI
+from mininet.node import Controller
+import sys
 
-		self.addLink(H1,S1)
-		self.addLink(H2,S1)
-		self.addLink(H3,S2)
-		self.addLink(H4,S2)
-		self.addLink(H5,S3)
-		self.addLink(H6,S3)
-		self.addLink(H7,S4)
-		self.addLink(H8,S4)
-		self.addLink(H9,S5)
-		self.addLink(H10,S5)
+def assign32():
 
+    "Create an empty network and add nodes to it."
+    args=(sys.argv)
+    hostCount=int(args[1])
+    switchCount=int(args[2])
 
+    print "no of hosts : "+args[1]
+    print "no of swithes : "+args[2]
 
-topos = { 'assign3': ( lambda: Assign3() )}
+    net = Mininet( controller=Controller )
+
+    info( '*** Adding controller\n' )
+    net.addController( 'c0' )
+
+    info( '*** Adding hosts\n' )
+    hosts=[]
+
+    for i in range(hostCount):
+	hosts.append(net.addHost('h'+str(i+1)))
+
+    info( '*** Adding switch\n' )
+    switches=[]
+
+    for i in range(switchCount):
+	switches.append(net.addSwitch('s'+str(i+1)))
+
+    info( '*** Creating links\n' )
+    for switchIndex in range(switchCount):
+	if switchIndex+2 < switchCount:
+		net.addLink(switches[switchIndex],switches[switchIndex+2])
+	if switchIndex%2 == 0 :
+		net.addLink(switches[switchIndex],hosts[2*switchIndex])
+		net.addLink(switches[switchIndex],hosts[2*switchIndex+2])
+	else:
+		net.addLink(switches[switchIndex],hosts[2*switchIndex-1])
+		net.addLink(switches[switchIndex],hosts[2*switchIndex+1])
+
+    info( '*** Starting network\n')
+    net.start()
+
+    info( '*** Running CLI\n' )
+    CLI( net )
+
+    info( '*** Stopping network' )
+    net.stop()
+
+if __name__ == '__main__':
+    setLogLevel( 'info' )
+    assign32()
